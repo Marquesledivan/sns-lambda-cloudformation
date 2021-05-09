@@ -72,6 +72,6 @@ Resources:
             Resource: !Ref SNSTopic
             Condition:
               StringEquals:
-                  "aws:PrincipalOrgID": "o-711hp0x6k3"
+                  "aws:PrincipalOrgID": "o-711h"
       Topics:
         - !Ref SNSTopic
