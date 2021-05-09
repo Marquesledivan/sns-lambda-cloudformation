@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda function with cfn-response.
+Resources:
+####### Role Lambda ############
+  RootRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: '*'
+####### Function Lambda ############
+  Function:
+    DependsOn: RootRole
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Role: !GetAtt RootRole.Arn
+      Handler: ssm.lambda_handler
+      Code:
+        S3Bucket: ledivan-teste-devops
+        S3Key: ssm.zip
+      Description: Invoke a function during stack creation.
+      Environment:
+        Variables:
+          databaseName: lambdadb
+          databaseUser: admin
+      TracingConfig:
+        Mode: Active
+  Permission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref Function
+      Principal: sns.amazonaws.com
+      SourceArn: !Ref SNSTopic
+####### SNS Topic ############
+  SNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: ledivan-devops
+      TopicName: ledivan-devops
+      Subscription:
+      - Endpoint: !GetAtt
+        - Function
+        - Arn
+        Protocol: lambda
+####### SNS Policy ############
+  SNSTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: "*"
+            Action: sns:Publish
+            Resource: !Ref SNSTopic
+            Condition:
+              StringEquals:
+                  "aws:PrincipalOrgID": "o-711hp0x6k3"
+      Topics:
+        - !Ref SNSTopic
