@@ -66,8 +66,7 @@ Resources:
       PolicyDocument:
         Statement:
           - Effect: Allow
-            Principal:
-              "*"
+            Principal: "*"
             Action: sns:Publish
             Resource: !Ref SNSTopic
             Condition:
