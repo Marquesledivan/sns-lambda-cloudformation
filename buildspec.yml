@@ -1,0 +1,17 @@
+version: 0.2
+env:
+    variables:
+       Name: "Ledivan"
+phases:
+    install:
+        commands:
+            - echo "Iniciando"
+            - zip ssm.zip ssm.py
+    build:
+        commands:
+            - echo Build started on `date`
+            - aws s3 cp ssm.zip s3://ledivan-teste-devops/
+    post_build:
+         commands:
+            - aws cloudformation deploy --template-file lambda.yaml  --stack-name my-new-stack --capabilities CAPABILITY_NAMED_IAM
+            - echo Build completed on `date`
